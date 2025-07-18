@@ -8,21 +8,21 @@ import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isError, setIsError] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>();
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  async function hendleSubmit(title: string) {
+  async function handleSubmit(title: string) {
     setMovies([]);
     setIsLoading(true);
     setIsError(false);
     try { 
       const movieList: Movie[] = await fetchMovies(title);
-      console.log(movieList);
+      if (movieList.length === 0) toast.error("there is no movie");
       setMovies(movieList);
     } catch (error) { 
       console.log(error);
@@ -32,23 +32,25 @@ function App() {
   }
 
   function openCard(movie: Movie) {
-    setIsModalOpen(true);
     setSelectedMovie(movie);
   }
 
   function closeCard() {
-    setIsModalOpen(false);
     setSelectedMovie(null);
   }
 
 
   return (
     <>
-      <SearchBar onSubmit={hendleSubmit} />
+      <Toaster
+                position="top-center"
+                reverseOrder={false}
+            />
+      <SearchBar onSubmit={handleSubmit} />
       {movies.length > 0 && <MovieGrid onSelect={openCard} movies={movies}/>}
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-      { (isModalOpen && selectedMovie) && <MovieModal  movie={selectedMovie} onClose={closeCard}/>}
+      { (selectedMovie) && <MovieModal  movie={selectedMovie} onClose={closeCard}/>}
     </>
   );
 }
